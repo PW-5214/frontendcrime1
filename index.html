@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Crime Reporting</title>
+</head>
+<body>
+    <h1>🚨 Crime Reporting System</h1>
+
+    <!-- ✅ Crime Report Form -->
+    <form id="crimeForm">
+        <label for="description">Crime Description:</label>
+        <input type="text" id="description" name="description" required><br><br>
+
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" required><br><br>
+
+        <label for="media">Upload Media (Image/Video):</label>
+        <input type="file" id="media" name="media" accept="image/*,video/*"><br><br>
+
+        <button type="submit">Submit Report</button>
+    </form>
+
+    <h2>📜 Submitted Reports</h2>
+    <div id="reportsContainer"></div>
+
+    <script>
+        document.getElementById('crimeForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+
+            const response = await fetch('http://localhost:3000/report', { 
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            alert(result.message);
+            loadReports(); // Refresh reports after submission
+        });
+
+        async function loadReports() {
+            const reportsContainer = document.getElementById("reportsContainer");
+
+            try {
+                const response = await fetch("http://localhost:3000/reports");
+                const data = await response.json();
+
+                if (data.files.length === 0) {
+                    reportsContainer.innerHTML = "<p>No reports found.</p>";
+                    return;
+                }
+
+                reportsContainer.innerHTML = ""; // Clear previous entries
+
+                data.files.forEach(file => {
+                    const reportDiv = document.createElement("div");
+                    reportDiv.innerHTML = `
+                        <p><strong>Crime Report Media:</strong></p>
+                        <img src="http://localhost:3000/${file}" alt="Crime Report Media" width="200">
+                        <hr>
+                    `;
+                    reportsContainer.appendChild(reportDiv);
+                });
+
+            } catch (error) {
+                console.error("Error fetching reports:", error);
+                reportsContainer.innerHTML = "<p>Error loading reports.</p>";
+            }
+        }
+
+        // Load reports when page loads
+        document.addEventListener("DOMContentLoaded", loadReports);
+    </script>
+</body>
+</html>
